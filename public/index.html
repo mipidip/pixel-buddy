@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pixel Buddy</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- MAIN AREA -->
+    <div class="container">
+
+      <div class="character">
+        <div class="pixel-face">
+          <div class="eye left"></div>
+          <div class="eye right"></div>
+          <div class="mouth"></div>
+        </div>
+      </div>
+
+      <div class="bubble" id="bubble">
+        Hi! Want to ask me something?
+      </div>
+
+      <button class="mic-btn" onclick="startListening()">
+        🎤
+      </button>
+
+    </div>
+
+    <!-- CHAT HISTORY -->
+    <div class="chat-box" id="chatBox">
+      <h3>Chat</h3>
+      <div id="messages"></div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
