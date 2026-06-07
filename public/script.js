@@ -156,7 +156,6 @@ if (!SpeechRecognition) {
 const textInput = document.getElementById("textInput");
 const sendBtn = document.getElementById("sendBtn");
 
-// Yazılı mesajı işleyen ve backend'e gönderen fonksiyon
 async function handleTextMessage() {
   const childText = textInput.value.trim();
   
@@ -165,12 +164,13 @@ async function handleTextMessage() {
   // Giriş kutusunu temizle
   textInput.value = "";
 
-  // Ekranda mesajı göster
-  bubble.textContent = childText;
+  // ❌ BURADAKİ bubble.textContent = childText; SATIRINI SİLDİK!
+  // Böylece mikrofonun üstündeki balonun yönlendirmesi asla bozulmayacak.
+
+  // Ekranda mesajı sadece sağdaki sohbet geçmişine ekliyoruz
   addMessage(childText, "child");
 
   try {
-    // Backend'e fetch atıyoruz (Mikrofonla aynı endpoint ve aynı hafıza yapısı!)
     const response = await fetch("/brain", {
       method: "POST",
       headers: {
@@ -178,7 +178,7 @@ async function handleTextMessage() {
       },
       body: JSON.stringify({ 
         text: childText,
-        history: conversationHistory // Hafızayı buraya da paslıyoruz
+        history: conversationHistory 
       })
     });
 
@@ -188,11 +188,9 @@ async function handleTextMessage() {
 
     const data = await response.json();
 
-    // Robotumuzun cevabını ekrana bas ve sesli oku
     addMessage(data.reply, "bot");
     speak(data.reply);
 
-    // Hafızayı güncelle (Yazışmalar da hafızaya dahil oluyor!)
     conversationHistory.push({ role: "user", content: childText });
     conversationHistory.push({ role: "assistant", content: data.reply });
 
