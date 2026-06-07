@@ -150,3 +150,66 @@ if (!SpeechRecognition) {
 
   window.startListening = startListening;
 }
+/* ======================
+   YAZILI MESAJ GÖNDERME MANTIĞI
+====================== */
+const textInput = document.getElementById("textInput");
+const sendBtn = document.getElementById("sendBtn");
+
+// Yazılı mesajı işleyen ve backend'e gönderen fonksiyon
+async function handleTextMessage() {
+  const childText = textInput.value.trim();
+  
+  if (!childText) return; // Boş mesajsa hiçbir şey yapma
+
+  // Giriş kutusunu temizle
+  textInput.value = "";
+
+  // Ekranda mesajı göster
+  bubble.textContent = childText;
+  addMessage(childText, "child");
+
+  try {
+    // Backend'e fetch atıyoruz (Mikrofonla aynı endpoint ve aynı hafıza yapısı!)
+    const response = await fetch("/brain", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ 
+        text: childText,
+        history: conversationHistory // Hafızayı buraya da paslıyoruz
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Brain offline");
+    }
+
+    const data = await response.json();
+
+    // Robotumuzun cevabını ekrana bas ve sesli oku
+    addMessage(data.reply, "bot");
+    speak(data.reply);
+
+    // Hafızayı güncelle (Yazışmalar da hafızaya dahil oluyor!)
+    conversationHistory.push({ role: "user", content: childText });
+    conversationHistory.push({ role: "assistant", content: data.reply });
+
+  } catch (error) {
+    console.log("Brain error:", error);
+    const fallback = "Hmm… beynim biraz dinleniyor. Tekrar dene 💛";
+    addMessage(fallback, "bot");
+    speak(fallback);
+  }
+}
+
+// Butona tıklandığında gönder
+sendBtn.addEventListener("click", handleTextMessage);
+
+// Kutunun içindeyken Enter tuşuna basıldığında gönder
+textInput.addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    handleTextMessage();
+  }
+});
