@@ -30,61 +30,95 @@ body {
 /* ======================
    BÜYÜK VE ANİMASYONLU PİKSEL YÜZ (180px)
 ====================== */
+/* ======================
+   GELİŞMİŞ PİKSEL MASKOT TASARIMI (180px)
+====================== */
 .pixel-face {
   width: 180px;
   height: 180px;
-  background: #ffd93d; /* Pixel Buddy Sarısı */
+  background: #ffd93d; /* Ana gövde rengi */
   position: relative;
-  margin-bottom: 25px;
-  image-rendering: pixelated; /* Piksel hatlarını netleştirir */
-  border: 4px solid #000;
-  border-radius: 12px;
-  box-shadow: 0 6px 0 #ccae31; /* Tatlı bir 3D piksel gölgesi */
+  margin: 0 auto 25px;
+  image-rendering: pixelated;
+  border: 6px solid #000; /* Daha kalın retro çerçeve */
+  border-radius: 16px;
+  box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.1), 0 8px 0 #ccae31; /* İç gölge ve dış 3D gölge ile derinlik */
 }
 
+/* Gözler: Daha büyük ve karakteri olan anime/piksel göz tarzı */
 .eye {
-  width: 25px;
-  height: 25px;
-  background: black;
+  width: 24px;
+  height: 32px;
+  background: #000;
   position: absolute;
-  top: 50px;
+  top: 45px;
+  border-radius: 4px;
+}
+
+/* Gözlerin içine piksel parıltı (çocuksu tatlı bir bakış için) */
+.eye::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  top: 4px;
+  left: 4px;
+  border-radius: 2px;
 }
 
 .eye.left {
-  left: 35px;
+  left: 32px;
 }
 
 .eye.right {
-  right: 35px;
+  right: 32px;
 }
 
-.mouth {
-  width: 70px;
-  height: 15px;
-  background: black;
+/* Sevimli Pembe Piksel Yanaklar (Allık) */
+.pixel-face::before, .pixel-face::after {
+  content: '';
   position: absolute;
-  bottom: 40px;
-  left: 55px;
-  transition: all 0.1s ease;
+  width: 20px;
+  height: 12px;
+  background: #ff7675; /* Tatlı pembe */
+  bottom: 55px;
+  border-radius: 3px;
+}
+.pixel-face::before { left: 20px; } /* Sol yanak */
+.pixel-face::after { right: 20px; } /* Sağ yanak */
+
+/* Ağız: Varsayılan mutlu, geniş gülümseme */
+.mouth {
+  width: 60px;
+  height: 16px;
+  background: #000;
+  position: absolute;
+  bottom: 35px;
+  left: 60px;
+  border-radius: 0 0 30px 30px; /* Aşağıya doğru kıvrılan gerçek bir gülümseme */
+  transition: all 0.1s ease-in-out;
 }
 
-/* Konuşma Animasyonu Aktifken */
+/* 🗣️ KONUŞMA ANİMASYONU (Gelişmiş Versiyon) */
 .pixel-face.talking .mouth {
-  animation: talkAnim 0.2s infinite alternate;
+  animation: advancedTalk 0.15s infinite alternate;
 }
 
-@keyframes talkAnim {
+@keyframes advancedTalk {
   0% {
-    height: 10px;
-    bottom: 42px;
+    height: 12px;
+    bottom: 37px;
+    border-radius: 0 0 20px 20px;
   }
   100% {
-    height: 35px;
-    bottom: 30px;
-    border-radius: 6px;
+    height: 30px; /* Ağız neşeyle açılıyor */
+    bottom: 25px;
+    width: 50px;
+    left: 65px;
+    border-radius: 50%; /* Konuşurken şaşkın/mutlu bir daire şekli alır */
   }
 }
-
 /* ======================
    KONUŞMA BALONU (BUBBLE)
 ====================== */
