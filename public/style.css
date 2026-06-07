@@ -1,16 +1,45 @@
 /* ======================
-   ANIMATED PIXEL FACE (180px)
+   GENEL SAYFA DÜZENİ
 ====================== */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #f6f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
+/* Ana Taşıyıcı Uygulama Alanı */
+.app {
+  display: flex;
+  align-items: center;
+  gap: 40px; /* Karakter alanı ile chat kutusu arasındaki ideal boşluk */
+}
+
+/* Sol Taraf: Karakter ve Mikrofon Alanı */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 300px; /* Sabit genişlik ile butonların kaymasını engelliyoruz */
+}
+
+/* ======================
+   BÜYÜK VE ANİMASYONLU PİKSEL YÜZ (180px)
+====================== */
 .pixel-face {
   width: 180px;
   height: 180px;
   background: #ffd93d; /* Pixel Buddy Sarısı */
   position: relative;
-  margin: 0 auto 20px;
-  image-rendering: pixelated; /* Piksel hatlarını keskinleştirir */
-  border: 4px solid #000; /* Daha belirgin çocuksu hatlar */
-  border-radius: 10px;
+  margin-bottom: 25px;
+  image-rendering: pixelated; /* Piksel hatlarını netleştirir */
+  border: 4px solid #000;
+  border-radius: 12px;
+  box-shadow: 0 6px 0 #ccae31; /* Tatlı bir 3D piksel gölgesi */
 }
 
 .eye {
@@ -36,23 +65,116 @@
   position: absolute;
   bottom: 40px;
   left: 55px;
-  transition: all 0.1s ease; /* Yumuşak geçiş için */
+  transition: all 0.1s ease;
 }
 
-/* 🗣️ Konuşma Animasyonu Tetiklendiğinde Çalışacak CSS */
+/* Konuşma Animasyonu Aktifken */
 .pixel-face.talking .mouth {
   animation: talkAnim 0.2s infinite alternate;
 }
 
-/* Ağzın açılıp kapanma hareketini simüle eden keyframes */
 @keyframes talkAnim {
   0% {
     height: 10px;
     bottom: 42px;
   }
   100% {
-    height: 35px; /* Ağız açılıyor */
+    height: 35px;
     bottom: 30px;
-    border-radius: 5px; /* Açıldığında daha sevimli bir şekil alsın */
+    border-radius: 6px;
   }
+}
+
+/* ======================
+   KONUŞMA BALONU (BUBBLE)
+====================== */
+.bubble {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 20px;
+  width: 260px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  border: 2px solid #e0e0e0;
+  position: relative;
+}
+
+/* Konuşma balonunun altına sevimli bir ok işareti ekliyoruz */
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: white transparent;
+  display: block;
+  width: 0;
+}
+
+/* ======================
+   MİKROFON BUTONU
+====================== */
+.mic-btn {
+  font-size: 40px;
+  padding: 20px;
+  width: 90px;
+  height: 90px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background-color: #4f6cff;
+  color: white;
+  box-shadow: 0 6px 0 #324ec7, 0 10px 20px rgba(79, 108, 255, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.1s ease;
+}
+
+.mic-btn:hover {
+  background-color: #3c55d9;
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 #324ec7, 0 8px 15px rgba(79, 108, 255, 0.3);
+}
+
+.mic-btn:active {
+  transform: translateY(6px);
+  box-shadow: none; /* Basıldığında 3D buton hissi verir */
+}
+
+/* ======================
+   SAĞ TARAF: CHAT KUTUSU (MONİTÖR)
+====================== */
+#chatBox {
+  width: 280px;
+  height: 420px;
+  background: #ffffff;
+  border: 3px solid #000000;
+  border-radius: 12px;
+  padding: 15px;
+  font-family: 'Courier New', Courier, monospace;
+  overflow-y: auto;
+  box-shadow: 0 6px 0 #000000;
+}
+
+.message {
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.child {
+  color: #4f6cff;
+  font-weight: bold;
+}
+
+.bot {
+  color: #27ae60;
+  font-weight: bold;
 }
