@@ -91,31 +91,26 @@ app.post("/brain", async (req, res) => {
     return res.json({ reply: "Merhaba! Burada olmana çok sevindim 😊" });
   }
 
-  // 🤖 3. ADIM: YAPAY ZEKA DEVREYE GİRİYOR (Hafıza Özellikli)
-  try {
-    const systemInstruction = `Sen, 7-9 yaş arası çocuklar için tasarlanmış, güvenli, neşeli ve eğitici bir dijital arkadaşsın. Adın Pixel Buddy.
-    Cevapların kesinlikle Türkçe olmalı, en fazla 2-3 kısa cümleden oluşmalı, karmaşık kelimeler içermemeli ve tamamen çocuk psikolojisine uygun olmalıdır.`;
+// 🤖 5. ADIM: YAPAY ZEKA DEVREYE GİRİYOR (Tüm filtrelerden geçtiyse)
+try {
+  // Pixel Buddy'ye dürüstlük ve detay isteme kuralını ekliyoruz
+  const systemInstruction = `Sen, 7-9 yaş arası çocuklar için tasarlanmış, güvenli, neşeli ve eğitici bir dijital arkadaşsın. Adın Pixel Buddy.
+  Cevapların kesinlikle Türkçe olmalı, en fazla 2-3 kısa cümleden oluşmalı, karmaşık kelimeler içermemeli ve tamamen çocuk psikolojisine uygun olmalıdır.
+  
+  KESİN KURAL: Bilmediğin, emin olmadığın, güncel veri gerektiren veya sana mantıksız gelen konularda ASLA bilgi uydurma, halüsinasyon görme. 
+  Böyle bir durumla karşılaştığında aynen şu felsefeyle cevap ver: "Bu konuda henüz pek bir bilgim yok arkadaşım. Ama bana biraz daha detay verirsen belki birlikte keşfedebilir veya sana yardımcı olabilirim! Şimdilik başka ne hakkında konuşalım?"`;
 
-    // [GÜNCELLEME]: OpenAI'a göndereceğimiz mesaj paketini hazırlıyoruz
-    // Önce sistem talimatını koyuyoruz:
-    const apiMessages = [{ role: "system", content: systemInstruction }];
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini", 
+    messages: [
+      { role: "system", content: systemInstruction },
+      ...apiMessages // Yukarıda sohbet geçmişini biriktirdiğimiz array
+    ],
+    max_tokens: 120, 
+    temperature: 0.3 // [ÖNEMLİ]: Sıcaklığı 0.7'den 0.3'ü düşürerek modelin uydurma (yaratıcılık) ihtimalini iyice azaltıyoruz
+  });
 
-    // Sonra frontend'den gelen eski konuşma geçmişini ekliyoruz:
-    chatHistory.forEach(msg => {
-      apiMessages.push({ role: msg.role, content: msg.content });
-    });
-
-    // En son olarak çocuğun şu an yazdığı son mesajı ekliyoruz:
-    apiMessages.push({ role: "user", content: rawText });
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", 
-      messages: apiMessages, // Artık sadece tek cümle değil, tüm geçmiş gidiyor!
-      max_tokens: 120, 
-      temperature: 0.7
-    });
-
-    return res.json({ reply: completion.choices[0].message.content });
+  return res.json({ reply: completion.choices[0].message.content });
 
   } catch (apiError) {
     console.log("OpenAI Hatası:", apiError.message);
