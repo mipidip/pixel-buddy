@@ -1,6 +1,10 @@
 const bubble = document.getElementById("bubble");
 const messages = document.getElementById("messages");
 
+// 🧠 [YENİ]: SOHBET GEÇMİŞİ HAFIZASI
+// Sayfa açık kaldığı sürece çocuğun tarayıcısında konuşmaları biriktirir
+let conversationHistory = [];
+
 /* ======================
    SPEECH SETUP
 ====================== */
@@ -18,18 +22,14 @@ synth.onvoiceschanged = () => {
 function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
   
-  // Tarayıcıda yüklü olan tüm sesleri alıyoruz
   const allVoices = synth.getVoices();
   
-  // Önce en kaliteli Türkçe sesleri (özellikle Google veya Microsoft'un doğal seslerini) arıyoruz
   let turkishVoice = allVoices.find(v => v.lang === "tr-TR" && v.name.includes("Google"));
   
-  // Eğer Google sesi bulamazsa, içinde "tr" geçen herhangi bir Türkçe ses arıyoruz
   if (!turkishVoice) {
     turkishVoice = allVoices.find(v => v.lang.startsWith("tr"));
   }
 
-  // Bulduğumuz Türkçe sesi Pixel Buddy'e atıyoruz
   if (turkishVoice) {
     utter.voice = turkishVoice;
     console.log("Seçilen Türkçe Ses:", turkishVoice.name);
@@ -37,13 +37,13 @@ function speak(text) {
     console.log("Sistemde yerel Türkçe ses bulunamadı, varsayılan ses kullanılıyor.");
   }
 
-  // Çocuk dostu tonlama ayarları
-  utter.rate = 0.85; // Telaffuz zorluğu varsa hızı biraz daha yavaşlatmak (0.85) netliği çok artırır
-  utter.pitch = 1.15; // Sesi biraz sevimli ve ince yapar
+  utter.rate = 0.85; 
+  utter.pitch = 1.15; 
 
-  synth.cancel(); // Eğer o sırada konuşuyorsa keser
+  synth.cancel(); 
   synth.speak(utter);
 }
+
 /* ======================
    CHAT UI
 ====================== */
@@ -71,9 +71,7 @@ if (!SpeechRecognition) {
 } else {
   const recognition = new SpeechRecognition();
 
-  // Eski hali: recognition.lang = "en-US";
-// Yeni hali:
-recognition.lang = "tr-TR";
+  recognition.lang = "tr-TR";
   recognition.interimResults = false;
   recognition.continuous = false;
 
@@ -97,12 +95,16 @@ recognition.lang = "tr-TR";
     addMessage(childText, "child");
 
     try {
+      // 🚀 [GÜNCELLEME]: Sunucuya hem son mesajı hem de biriken geçmişi gönderiyoruz
       const response = await fetch("/brain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ text: childText })
+        body: JSON.stringify({ 
+          text: childText,
+          history: conversationHistory // Hafızayı buraya paslıyoruz
+        })
       });
 
       if (!response.ok) {
@@ -113,6 +115,11 @@ recognition.lang = "tr-TR";
 
       addMessage(data.reply, "bot");
       speak(data.reply);
+
+      // 🧠 [YENİ]: BAŞARILI CEVAPTAN SONRA HAFIZAYI GÜNCELLE
+      // Bu sayede bir sonraki cümlede düzeltme yaparsan Pixel Buddy bağlamı kaçırmayacak.
+      conversationHistory.push({ role: "user", content: childText });
+      conversationHistory.push({ role: "assistant", content: data.reply });
 
     } catch (error) {
       console.log("Brain error:", error);
@@ -129,7 +136,7 @@ recognition.lang = "tr-TR";
   };
 
   recognition.onend = () => {
-    bubble.textContent = "Tap the mic to talk again 🎤";
+    bubble.textContent = "Konuşmak için mikrofona tekrar bas 🎤";
   };
 
   window.startListening = startListening;
