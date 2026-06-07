@@ -22,8 +22,10 @@ synth.onvoiceschanged = () => {
 function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
   
-  const allVoices = synth.getVoices();
+  // HTML'deki piksel yüz elementini yakalıyoruz
+  const pixelFace = document.querySelector(".pixel-face");
   
+  const allVoices = synth.getVoices();
   let turkishVoice = allVoices.find(v => v.lang === "tr-TR" && v.name.includes("Google"));
   
   if (!turkishVoice) {
@@ -32,13 +34,20 @@ function speak(text) {
 
   if (turkishVoice) {
     utter.voice = turkishVoice;
-    console.log("Seçilen Türkçe Ses:", turkishVoice.name);
-  } else {
-    console.log("Sistemde yerel Türkçe ses bulunamadı, varsayılan ses kullanılıyor.");
   }
 
   utter.rate = 0.85; 
   utter.pitch = 1.15; 
+
+  // 🗣️ KONUŞMA BAŞLADIĞINDA: .talking sınıfını ekle (Animasyon başlar)
+  utter.onstart = () => {
+    if (pixelFace) pixelFace.classList.add("talking");
+  };
+
+  // 🤫 KONUŞMA BİTTİĞİNDE: .talking sınıfını kaldır (Animasyon durur)
+  utter.onend = () => {
+    if (pixelFace) pixelFace.classList.remove("talking");
+  };
 
   synth.cancel(); 
   synth.speak(utter);
