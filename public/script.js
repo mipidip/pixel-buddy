@@ -67,7 +67,7 @@ function addMessage(text, type) {
 ====================== */
 
 if (!SpeechRecognition) {
-  bubble.textContent = "Sorry, I can't hear you here.";
+  bubble.textContent = "Üzgünüm, seni duyamıyorum.";
 } else {
   const recognition = new SpeechRecognition();
 
@@ -82,12 +82,12 @@ recognition.lang = "tr-TR";
       recognition.abort();
     } catch (e) {}
 
-    bubble.textContent = "I'm listening...";
+    bubble.textContent = "Dinliyorum...";
     recognition.start();
   }
 
   recognition.onstart = () => {
-    console.log("🎤 Mic started");
+    console.log("🎤 Mikrofon açık");
   };
 
   recognition.onresult = async (event) => {
@@ -117,7 +117,7 @@ recognition.lang = "tr-TR";
     } catch (error) {
       console.log("Brain error:", error);
 
-      const fallback = "Hmm… my brain is resting a little. Try again 💛";
+      const fallback = "Hmm… beynim biraz dinleniyor. Tekrar dene 💛";
       addMessage(fallback, "bot");
       speak(fallback);
     }
@@ -125,7 +125,7 @@ recognition.lang = "tr-TR";
 
   recognition.onerror = (event) => {
     console.log("Speech error:", event.error);
-    bubble.textContent = "Mic problem. Tap again 🎤";
+    bubble.textContent = "Mikrofon problemi. Tekrar dene 🎤";
   };
 
   recognition.onend = () => {
