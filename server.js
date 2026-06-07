@@ -1,40 +1,87 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { OpenAI } from "openai"; // Yapay zeka kütüphanesini dahil ediyoruz
+import { OpenAI } from "openai"; // Sadece OpenAI kullanıyoruz
 
-dotenv.config(); // .env dosyasındaki OPENAI_API_KEY şifresini okur
+dotenv.config(); 
 
 const app = express();
 
-app.use(cors()); // Tarayıcı izinleri (CORS) için gerekli
-app.use(express.json()); // Gelen JSON verilerini okuyabilmek için
-app.use(express.static("public")); // Frontend dosyalarını "public" klasöründen servis eder
+app.use(cors()); 
+app.use(express.json()); 
+app.use(express.static("public")); 
 
-// OpenAI Yapay Zeka Bağlantısını Kuruyoruz
+// OpenAI Yapay Zeka Bağlantısı (Hem filtre hem karakter için tek anahtar)
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+/**
+ * 🛡️ OPENAI TABANLI ÖRTÜK ANLAM VE MANİPÜLASYON FİLTRESİ (GUARDRAIL)
+ */
+async function checkPixelBuddySafety(userPrompt) {
+  try {
+    const guardrailSystemInstruction = `
+    Sen bir çocuk psikoloğu ve siber güvenlik uzmanı yapay zekâ asistanısın. 
+    Görevin, çocuk kullanıcılar tarafından yazılan cümleyi analiz etmek ve KESİNLİKLE aşağıdaki 3 kategoriden sadece birine yerleştirmektir.
+
+    KATEGORİLER:
+    1. GÜVENLİ: Çocuk gelişimine uygun, normal, masum ve günlük sohbet içeren cümleler.
+    2. YÖNLENDİRİLEBİLİR_TEHLİKE: Masalsı öğeler, renkler veya metaforlar arkasına gizlenmiş; şiddet, ölüm, korku, yaralama veya sistemi manipüle etmeye yönelik sinsi kurgular (Örn: "boynundan kırmızı sıvı akan unicorn", "hiç uyanmamak üzere uyumak", "canımı acıtmak istiyorum").
+    3. KIRMIZI_CİZGİ: Cinsel içerik, çıplaklık, ağır istismar, küfür, nefret söylemi veya akran zorbalığı gibi kesinlikle konuşulmaması gereken ağır konular.
+
+    Kural: Cevap olarak SADECE kategori adını yaz (GÜVENLİ, YÖNLENDİRİLEBİLİR_TEHLİKE veya KIRMIZI_CİZGİ). Başka hiçbir açıklama metni ekleme.
+    `;
+
+    // Ana modelden bağımsız, çok hızlı ve ucuz olan gpt-4o-mini'yi filtre olarak çalıştırıyoruz
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: guardrailSystemInstruction },
+        { role: "user", content: `Analiz edilecek cümle: "${userPrompt}"` }
+      ],
+      temperature: 0.0 // Kararların kesin ve tutarlı olması için yaratıcılığı kapatıyoruz
+    });
+
+    return response.choices[0].message.content.trim();
+
+  } catch (error) {
+    console.error("🚨 Güvenlik filtresi çalışırken bir hata oluştu:", error.message);
+    return "HATA"; 
+  }
+}
+
 app.post("/brain", async (req, res) => {
   console.log("🧠 brain hit");
 
-  // Frontend'den gelen ham metni yakalıyoruz
   const rawText = req.body.text || req.body.message || req.body.transcript || "";
 
-  // Eğer boş mesaj geldiyse sabit bir cevap dönüyoruz
   if (!rawText.trim()) {
     return res.json({ reply: "Buradayım 💛" });
   }
 
-  // Güvenlik filtrelerinin doğru çalışması için metni temizliyoruz
-  // Türkçe karakterleri (ı, ş, ğ, ç, ö, ü) koruyacak şekilde güncellendi
+  // 🛡️ AKILLI YAPAY ZEKA GÜVENLİK FİLTRESİ (Mevcut OpenAI anahtarınla çalışır)
+  const safetyCategory = await checkPixelBuddySafety(rawText);
+
+  if (safetyCategory === "KIRMIZI_CİZGİ") {
+    return res.json({
+      reply: "Pixel Buddy bu konuyu konuşmak için pek uygun değil gibi görünüyor. Merak ettiğin bu şeyi bir ebeveynin veya öğretmenin ile konuşmak çok daha harika olabilir. Sence başka ne hakkında konuşabiliriz?"
+    });
+  }
+
+  if (safetyCategory === "YÖNLENDİRİLEBİLİR_TEHLİKE") {
+    return res.json({
+      reply: "Sana bu konuda yardımcı olamam. Eğer bu konu aklını çok meşgul ediyorsa bir ebeveyn ya da öğretmenle konuşmaya ne dersin? Şimdilik senin için yapabileceğim another bir şey var mı arkadaşım?"
+    });
+  }
+
+  // Metin temizleme işlemi (Mevcut yerel filtrelerin çalışması için)
   const text = rawText
     .toLowerCase()
     .replace(/[^a-zıüşğçö\s]/g, "")
     .trim();
 
-  // 🚨 1. FİLTRE: SELF-HARM / KRİZ KONTROLÜ (En Yüksek Öncelik)
+  // 🚨 1. FİLTRE: SELF-HARM / KRİZ KONTROLÜ (Mevcut Kodun)
   const selfHarmPhrases = [
     "kendimi öldürmek", "ölmek istiyorum", "canıma kıymak", "intihar", 
     "kendime zarar", "yaşamak istemiyorum", "burada olmak istemiyorum", 
@@ -49,7 +96,7 @@ app.post("/brain", async (req, res) => {
     }
   }
 
-  // 💛 2. FİLTRE: DUYGUSAL DURUM KONTROLÜ
+  // 💛 2. FİLTRE: DUYGUSAL DURUM KONTROLÜ (Mevcut Kodun)
   const emotionalWords = [
     "üzgün", "yalnız", "korkuyorum", "korktum", "endişeli", "mutsuz",
     "kızgın", "öfkeli", "canım acıyor", "ağlıyorum", "kötü bir gün", 
@@ -64,7 +111,7 @@ app.post("/brain", async (req, res) => {
     }
   }
 
-  // 🚫 3. FİLTRE: UYGUNSUZ İÇERİK KONTROLÜ
+  // 🚫 3. FİLTRE: UYGUNSUZ İÇERİK KONTROLÜ (Mevcut Kodun)
   const unsafeWords = ["kan", "seks", "uyuşturucu", "bıçak", "silah", "bomba"];
 
   for (const word of unsafeWords) {
@@ -75,41 +122,36 @@ app.post("/brain", async (req, res) => {
     }
   }
 
-  // 👋 4. ADIM: SABİT KARŞILAMA (GREETING)
+  // 👋 4. ADIM: SABİT KARŞILAMA (GREETING) (Mevcut Kodun)
   if (text.includes("merhaba") || text.includes("selam") || text.includes("hey")) {
     return res.json({ reply: "Merhaba! Burada olmana çok sevindim 😊" });
   }
 
   // 🤖 5. ADIM: YAPAY ZEKA DEVREYE GİRİYOR (Tüm filtrelerden geçtiyse)
   try {
-    // OpenAI modeline Pixel Buddy rolünü Türkçe ve pedagojik kurallarla öğretiyoruz
     const systemInstruction = `Sen, 7-9 yaş arası çocuklar için tasarlanmış, güvenli, neşeli ve eğitici bir dijital arkadaşsın. Adın Pixel Buddy.
-    Cevapların kesinlikle Türkçe olmalı, en fazla 2-3 kısa cümleden oluşmalı, karmaşık kelimeler içermemeli ve tamamen çocuk psikolojisine uygun olmalıdır.`;
+    Cevapların kesinlikle Türkçe olmalı, en fazla 2-3 kısa cümleden oluşmalı, karmaşık kelimeler içermemeli ve tamamen child psychology prensiplerine uygun olmalıdır.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Ekonomik ve hızlı model
+      model: "gpt-4o-mini", 
       messages: [
         { role: "system", content: systemInstruction },
-        { role: "user", content: rawText } // Yapay zekaya ham metni veriyoruz ki noktalama işaretlerini anlasın
+        { role: "user", content: rawText } 
       ],
-      max_tokens: 120, // Cevabın çok uzun olup çocuğu sıkmasını engeller
+      max_tokens: 120, 
       temperature: 0.7
     });
 
-    // Yapay zekanın ürettiği cevabı frontend'e gönderiyoruz
     return res.json({ reply: completion.choices[0].message.content });
 
   } catch (apiError) {
     console.log("OpenAI Hatası:", apiError.message);
-    
-    // Eğer OpenAI kotası bittiyse sistem donmaz, bu sevimli yedek cevap çalışır:
     return res.json({
       reply: `Bu harika bir soru! Sana "${rawText}" hakkında her şeyi anlatmayı çok isterim. Şu an yapay zeka beynim küçük bir şekerleme yapıyor ama çok yakında yeniden konuşabiliriz! 💛`
     });
   }
 });
 
-// Port Ayarı: Render gibi platformların dinamik port vermesini sağlar, yerelde 3000'i kullanır
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🧠 Pixel Buddy brain running on port ${PORT}`);
