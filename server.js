@@ -71,7 +71,7 @@ app.post("/brain", async (req, res) => {
 
   if (safetyCategory === "YÖNLENDİRİLEBİLİR_TEHLİKE") {
     return res.json({
-      reply: "Sana bu konuda yardımcı olamam. Eğer bu konu aklını çok meşgul ediyorsa bir ebeveyn ya da öğretmenle konuşmaya ne dersin? Şimdilik senin için yapabileceğim another bir şey var mı arkadaşım?"
+      reply: "Sana bu konuda yardımcı olamam. Eğer bu konu aklını çok meşgul ediyorsa bir ebeveyn ya da öğretmenle konuşmaya ne dersin? Şimdilik senin için yapabileceğim başka bir şey var mı arkadaşım?"
     });
   }
 
