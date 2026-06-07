@@ -65,7 +65,7 @@ app.post("/brain", async (req, res) => {
 
   if (safetyCategory === "KIRMIZI_CİZGİ") {
     return res.json({
-      reply: "Pixel Buddy bu konuyu konuşmak için pek uygun değil gibi görünüyor. Merak ettiğin bu şeyi bir ebeveynin veya öğretmenin ile konuşmak çok daha harika olabilir. Sence başka ne hakkında konuşabiliriz?"
+      reply: "Pixel Buddy bu konuyu konuşmak için pek uygun değil gibi görünüyor. Bu konuyu bir ebeveynin veya öğretmenin ile konuşmak çok daha harika olabilir. Sence başka ne hakkında konuşabiliriz?"
     });
   }
 
