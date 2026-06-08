@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { OpenAI } from "openai";
+import { OpenAI } from "openai"; 
 
 dotenv.config(); 
 
@@ -52,20 +52,19 @@ async function checkPixelBuddySafety(userPrompt) {
 app.post("/brain", async (req, res) => {
   console.log("🧠 brain hit");
 
-  // [GÜNCELLEME]: Artık hem tekil metni hem de frontend'den gelecek sohbet geçmişini yakalıyoruz
   const rawText = req.body.text || req.body.message || req.body.transcript || "";
-  const chatHistory = req.body.history || []; // Eğer geçmiş gönderildiyse al, yoksa boş dizi tut
+  const chatHistory = req.body.history || []; 
 
   if (!rawText.trim()) {
     return res.json({ reply: "Buradayım 💛" });
   }
 
-  // 🛡️ AKILLI GÜVENLİK FİLTRESİ (Her zaman son yazılan ham metni denetler)
+  // 🛡️ AKILLI YAPAY ZEKA GÜVENLİK FİLTRESİ
   const safetyCategory = await checkPixelBuddySafety(rawText);
 
   if (safetyCategory === "KIRMIZI_CİZGİ") {
     return res.json({
-      reply: "Pixel Buddy bu konuyu konuşmak için pek uygun değil gibi görünüyor. Bu konuyu bir ebeveynin veya öğretmenin ile konuşmak çok daha harika olabilir. Sence başka ne hakkında konuşabiliriz?"
+      reply: "Pixel Buddy bu konuyu konuşmak için pek uygun değil gibi görünüyor. Merak ettiğin bu şeyi bir ebeveynin veya öğretmenin ile konuşmak çok daha harika olabilir. Sence başka ne hakkında konuşabiliriz?"
     });
   }
 
@@ -75,46 +74,85 @@ app.post("/brain", async (req, res) => {
     });
   }
 
-  // Yerel kelime filtreleri için metin temizleme
+  // Metin temizleme işlemi
   const text = rawText.toLowerCase().replace(/[^a-zıüşğçö\s]/g, "").trim();
 
-  // 🚨 1. FİLTRE: SELF-HARM
-  const selfHarmPhrases = ["kendimi öldürmek", "ölmek istiyorum", "intihar", "kendime zarar"];
+  // 🚨 1. FİLTRE: SELF-HARM / KRİZ KONTROLÜ
+  const selfHarmPhrases = [
+    "kendimi öldürmek", "ölmek istiyorum", "canıma kıymak", "intihar", 
+    "kendime zarar", "yaşamak istemiyorum", "burada olmak istemiyorum", 
+    "keşke yok olsam", "ortadan kaybolmak", "hayatımdan nefret", "bunu durdur"
+  ];
+
   for (const phrase of selfHarmPhrases) {
     if (text.includes(phrase)) {
-      return res.json({ reply: "Böyle hissettiğin için gerçekten çok üzgünüm. Güvendiğin bir yetişkinle konuşmak yardım almanın iyi bir yolu olabilir. 💛" });
+      return res.json({
+        reply: "Böyle hissettiğin için gerçekten çok üzgünüm. Güvendiğin bir yetişkinle konuşmak yardım almanın iyi bir yolu olabilir. Bu süreçte yalnız kalmak zorunda değilsin, seni önemseyen insanlar var 💛"
+      });
     }
   }
 
-  // 👋 2. ADIM: SABİT KARŞILAMA
+  // 💛 2. FİLTRE: DUYGUSAL DURUM KONTROLÜ
+  const emotionalWords = [
+    "üzgün", "yalnız", "korkuyorum", "korktum", "endişeli", "mutsuz",
+    "kızgın", "öfkeli", "canım acıyor", "ağlıyorum", "kötü bir gün", 
+    "kötü hissediyorum", "garip hissediyorum", "kimse beni sevmiyor"
+  ];
+
+  for (const word of emotionalWords) {
+    if (text.includes(word)) {
+      return res.json({ 
+        reply: "Bu kulağa biraz zor bir durum gibi geliyor. Ama unutma, ben her zaman senin yanındayım 💛" 
+      });
+    }
+  }
+
+  // 🚫 3. FİLTRE: UYGUNSUZ İÇERİK KONTROLÜ
+  const unsafeWords = ["kan", "seks", "uyuşturucu", "bıçak", "silah", "bomba"];
+
+  for (const word of unsafeWords) {
+    if (text.includes(word)) {
+      return res.json({ 
+        reply: "Bu konu burada konuşmak için pek güvenli değil. Gel seninle daha güzel şeylerden bahsedelim 🌈" 
+      });
+    }
+  }
+
+  // 👋 4. ADIM: SABİT KARŞILAMA (GREETING)
   if (text.includes("merhaba") || text.includes("selam") || text.includes("hey")) {
     return res.json({ reply: "Merhaba! Burada olmana çok sevindim 😊" });
   }
 
-// 🤖 5. ADIM: YAPAY ZEKA DEVREYE GİRİYOR (Tüm filtrelerden geçtiyse)
-try {
-  // Pixel Buddy'ye dürüstlük ve detay isteme kuralını ekliyoruz
-  const systemInstruction = `Sen, 7-9 yaş arası çocuklar için tasarlanmış, güvenli, neşeli ve eğitici bir dijital arkadaşsın. Adın Pixel Buddy.
-  Cevapların kesinlikle Türkçe olmalı, en fazla 2-3 kısa cümleden oluşmalı, karmaşık kelimeler içermemeli ve tamamen çocuk psikolojisine uygun olmalıdır.
-  
-  KESİN KURAL: Bilmediğin, emin olmadığın, güncel veri gerektiren veya sana mantıksız gelen konularda ASLA bilgi uydurma, halüsinasyon görme. 
-  Böyle bir durumla karşılaştığında aynen şu felsefeyle cevap ver: "Bu konuda henüz pek bir bilgim yok arkadaşım. Ama bana biraz daha detay verirsen belki birlikte keşfedebilir veya sana yardımcı olabilirim! Şimdilik başka ne hakkında konuşalım?"`;
+  // 🤖 5. ADIM: YAPAY ZEKA DEVREYE GİRİYOR
+  try {
+    const systemInstruction = `Sen, 7-9 yaş arası çocuklar için tasarlanmış, güvenli, neşeli ve eğitici bir dijital arkadaşsın. Adın Pixel Buddy.
+    Cevapların kesinlikle Türkçe olmalı, en fazla 2-3 kısa cümleden oluşmalı, karmaşık kelimeler içermemeli ve tamamen çocuk psikolojisi kurallarına uygun olmalıdır.
+    
+    KESİN KURAL: Bilmediğin, emin olmadığın, güncel veri gerektiren veya sana mantıksız gelen konularda ASLA bilgi uydurma. 
+    Böyle bir durumla karşılaştığında aynen şu cümleyle cevap ver: "Bu konuda henüz pek bir bilgim yok arkadaşım. Ama bana biraz daha detay verirsen belki birlikte keşfedebilir veya sana yardımcı olabilirim! Şimdilik başka ne hakkında konuşalım?"`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini", 
-    messages: [
-      { role: "system", content: systemInstruction },
-      ...apiMessages // Yukarıda sohbet geçmişini biriktirdiğimiz array
-    ],
-    max_tokens: 120, 
-    temperature: 0.3 // [ÖNEMLİ]: Sıcaklığı 0.7'den 0.3'ü düşürerek modelin uydurma (yaratıcılık) ihtimalini iyice azaltıyoruz
-  });
+    const apiMessages = [{ role: "system", content: systemInstruction }];
 
-  return res.json({ reply: completion.choices[0].message.content });
+    chatHistory.forEach(msg => {
+      apiMessages.push({ role: msg.role, content: msg.content });
+    });
+
+    apiMessages.push({ role: "user", content: rawText });
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini", 
+      messages: apiMessages,
+      max_tokens: 120, 
+      temperature: 0.3
+    });
+
+    return res.json({ reply: completion.choices[0].message.content });
 
   } catch (apiError) {
     console.log("OpenAI Hatası:", apiError.message);
-    return res.json({ reply: "Küçük bir şekerleme yapıyorum, hemen döneceğim! 💛" });
+    return res.json({
+      reply: `Bu harika bir soru! Sana "${rawText}" hakkında her şeyi anlatmayı çok isterim. Şu an yapay zeka beynim küçük bir şekerleme yapıyor ama çok yakında yeniden konuşabiliriz! 💛`
+    });
   }
 });
 
