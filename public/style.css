@@ -15,7 +15,7 @@ body {
 .app {
   display: flex;
   align-items: center;
-  gap: 40px; /* Karakter alanı ile chat kutusu arasındaki ideal boşluk */
+  gap: 40px;
 }
 
 /* Sol Taraf: Karakter ve Mikrofon Alanı */
@@ -24,7 +24,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 300px; /* Sabit genişlik ile butonların kaymasını engelliyoruz */
+  width: 300px;
 }
 
 /* ======================
@@ -37,12 +37,13 @@ body {
   position: relative;
   margin: 0 auto 25px;
   image-rendering: pixelated;
-  border: 6px solid #000; /* Daha kalın retro çerçeve */
+  border: 6px solid #000;
   border-radius: 16px;
-  box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.1), 0 8px 0 #ccae31; /* İç gölge ve dış 3D gölge ile derinlik */
+  box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.1), 0 8px 0 #ccae31;
+  transition: background 0.2s ease;
 }
 
-/* Gözler: Daha büyük ve karakteri olan anime/piksel göz tarzı */
+/* Gözler */
 .eye {
   width: 24px;
   height: 32px;
@@ -52,7 +53,6 @@ body {
   border-radius: 4px;
 }
 
-/* Gözlerin içine piksel parıltı (çocuksu tatlı bir bakış için) */
 .eye::after {
   content: '';
   position: absolute;
@@ -64,28 +64,23 @@ body {
   border-radius: 2px;
 }
 
-.eye.left {
-  left: 32px;
-}
+.eye.left { left: 32px; }
+.eye.right { right: 32px; }
 
-.eye.right {
-  right: 32px;
-}
-
-/* Sevimli Pembe Piksel Yanaklar (Allık) */
+/* Sevimli Pembe Piksel Yanaklar */
 .pixel-face::before, .pixel-face::after {
   content: '';
   position: absolute;
   width: 20px;
   height: 12px;
-  background: #ff7675; /* Tatlı pembe */
+  background: #ff7675;
   bottom: 55px;
   border-radius: 3px;
 }
-.pixel-face::before { left: 20px; } /* Sol yanak */
-.pixel-face::after { right: 20px; } /* Sağ yanak */
+.pixel-face::before { left: 20px; }
+.pixel-face::after { right: 20px; }
 
-/* Ağız: Varsayılan mutlu, geniş gülümseme */
+/* Ağız */
 .mouth {
   width: 60px;
   height: 16px;
@@ -93,44 +88,25 @@ body {
   position: absolute;
   bottom: 35px;
   left: 60px;
-  border-radius: 0 0 30px 30px; /* Aşağıya doğru kıvrılan gerçek bir gülümseme */
+  border-radius: 0 0 30px 30px;
   transition: all 0.1s ease-in-out;
 }
 
-/* 🗣️ VARSAYILAN (GENEL) KONUŞMA ANİMASYONU */
+/* Konuşma Animasyonu */
 .pixel-face.talking .mouth {
   animation: advancedTalk 0.15s infinite alternate;
 }
 
 @keyframes advancedTalk {
-  0% {
-    height: 12px;
-    bottom: 37px;
-    border-radius: 0 0 20px 20px;
-  }
-  100% {
-    height: 30px; /* Ağız neşeyle açılıyor */
-    bottom: 25px;
-    width: 50px;
-    left: 65px;
-    border-radius: 50%; /* Konuşurken şaşkın/mutlu bir daire şekli alır */
-  }
+  0% { height: 12px; bottom: 37px; border-radius: 0 0 20px 20px; }
+  100% { height: 30px; bottom: 25px; width: 50px; left: 65px; border-radius: 50%; }
 }
 
 /* ======================
-    💎 SAF CSS PIXEL ART ALTYAPISI
+    🎨 TEMA GEÇİŞLERİ VE SÜPER ANLAŞILIR ANIMASYONLAR
 ====================== */
 
-/* Tema aktif değilken çizim tuvalini (canvas) gizle */
-.theme-canvas {
-  display: none;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Herhangi bir tema aktifken ana yüzün öğelerini kapat */
+/* Tema aktifken yüz elemanlarını gizle */
 .pixel-face[class*="theme-"] .eye,
 .pixel-face[class*="theme-"] .mouth,
 .pixel-face[class*="theme-"]::before,
@@ -138,152 +114,92 @@ body {
   display: none !important;
 }
 
-/* Tema aktifken çizim tuvalini görünür yap */
+/* Ortak Çizim Tuvali Alanı: İçerisine koyacağımız ikonları büyütecek ve ortalayacak */
+.theme-canvas {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 70px; /* Şekillerin devasa ve anlaşılır olması için */
+  text-align: center;
+  line-height: 1;
+}
+
 .pixel-face[class*="theme-"] .theme-canvas {
   display: block;
 }
 
-/* ======================
-    🚀 ÖZGÜN SAF CSS TEMALARI (MATRİS ÇİZİMLERİ)
-====================== */
-
-/* 🪐 UZAY TEMASI: Dönen ve Parıldayan Süpernova Yıldızı */
+/* 🪐 UZAY TEMASI: Havalanan Roket Sembolü */
 .pixel-face.talking.theme-uzay { background: #1e272e !important; }
-.pixel-face.talking.theme-uzay .theme-canvas {
-  width: 12px;
-  height: 12px;
-  background: transparent;
-  animation: spaceAnim 0.4s infinite steps(1) alternate;
+.pixel-face.talking.theme-uzay .theme-canvas::before {
+  content: '🚀';
+  display: inline-block;
+  animation: rocketFly 0.4s infinite ease-in-out alternate;
 }
-@keyframes spaceAnim {
-  0% {
-    box-shadow: 0 -12px #fff, 0 12px #fff, -12px 0 #fff, 12px 0 #fff, 0 0 #fff;
-  }
-  100% {
-    box-shadow: 
-      0 -24px #fff, 0 24px #fff, -24px 0 #fff, 24px 0 #fff,
-      -12px -12px #ffd93d, 12px -12px #ffd93d, -12px 12px #ffd93d, 12px 12px #ffd93d,
-      0 0 #fff;
-  }
+@keyframes rocketFly {
+  0% { transform: translateY(10px) scale(0.9); }
+  100% { transform: translateY(-15px) scale(1.1); }
 }
 
-/* 🦁 HAYVAN TEMASI: Zıplayan 8-Bit Kurbağa veya Pati Esintisi */
+/* 🦁 HAYVAN TEMASI: Sevimli ve Sallanan Pati */
 .pixel-face.talking.theme-hayvan { background: #27ae60 !important; }
-.pixel-face.talking.theme-hayvan .theme-canvas {
-  width: 10px;
-  height: 10px;
-  background: transparent;
-  animation: animalAnim 0.3s infinite steps(1) alternate;
+.pixel-face.talking.theme-hayvan .theme-canvas::before {
+  content: '🐾';
+  display: inline-block;
+  animation: pawShake 0.3s infinite ease-in-out alternate;
 }
-@keyframes animalAnim {
-  0% {
-    box-shadow: 
-      -20px -10px #000, -10px -10px #fff, 10px -10px #fff, 20px -10px #000,
-      -20px 0 #fff, -10px 0 #000, 10px 0 #000, 20px 0 #fff,
-      -30px 10px #fff, -20px 10px #fff, 20px 10px #fff, 30px 10px #fff,
-      -20px 20px #ff7675, 20px 20px #ff7675;
-  }
-  100% {
-    box-shadow: 
-      -20px -15px #000, -10px -15px #fff, 10px -15px #fff, 20px -15px #000,
-      -20px -5px #fff, -10px -5px #000, 10px -5px #000, 20px -5px #fff,
-      -30px 5px #fff, -20px 5px #fff, 20px 5px #fff, 30px 5px #fff,
-      -20px 15px #ff7675, 20px 15px #ff7675,
-      -10px 25px #000, 0 25px #000, 10px 25px #000; /* Ağız açılma efekti */
-  }
+@keyframes pawShake {
+  0% { transform: rotate(-15deg); }
+  100% { transform: rotate(15deg); }
 }
 
-/* 🦖 DİNOZOR TEMASI: Kıpırdayan Mini Piksel Ejderha/Dino Gözü */
+/* 🦖 DİNOZOR TEMASI: Kükreyen Dinozor Kafası */
 .pixel-face.talking.theme-dinozor { background: #f39c12 !important; }
-.pixel-face.talking.theme-dinozor .theme-canvas {
-  width: 12px;
-  height: 12px;
-  background: transparent;
-  animation: dinoAnim 0.35s infinite steps(1) alternate;
+.pixel-face.talking.theme-dinozor .theme-canvas::before {
+  content: '🦖';
+  display: inline-block;
+  animation: dinoRoar 0.4s infinite ease-in-out alternate;
 }
-@keyframes dinoAnim {
-  0% {
-    box-shadow: 
-      -12px -12px #000, 0 -12px #000, 12px -12px #000,
-      -12px 0 #fff, 0 0 #000, 12px 0 #fff,
-      -12px 12px #000, 0 12px #000, 12px 12px #000;
-  }
-  100% {
-    box-shadow: 
-      -12px -12px #000, 0 -12px #000, 12px -12px #000,
-      -12px 0 #ffd93d, 0 0 #000, 12px 0 #ffd93d, /* Gözler parıldıyor */
-      -24px 12px #000, 0 12px #000, 24px 12px #000;
-  }
+@keyframes dinoRoar {
+  0% { transform: scale(0.9) rotate(-5deg); }
+  100% { transform: scale(1.15) rotate(5deg); }
 }
 
-/* 🌳 DOĞA TEMASI: Büyüyüp Küçülen Piksel Çiçek / Filiz */
+/* 🌳 DOĞA TEMASI: Rüzgarda Sallanan Yeşil Yaprak */
 .pixel-face.talking.theme-doga { background: #1abc9c !important; }
-.pixel-face.talking.theme-doga .theme-canvas {
-  width: 12px;
-  height: 12px;
-  background: transparent;
-  animation: natureAnim 0.4s infinite steps(1) alternate;
+.pixel-face.talking.theme-doga .theme-canvas::before {
+  content: '🌱';
+  display: inline-block;
+  animation: leafSway 0.5s infinite ease-in-out alternate;
 }
-@keyframes natureAnim {
-  0% {
-    box-shadow: 0 0 #ffd93d, 0 -12px #27ae60, -12px 0 #27ae60, 12px 0 #27ae60, 0 12px #27ae60;
-  }
-  100% {
-    box-shadow: 
-      0 0 #ffd93d, 
-      0 -12px #27ae60, -12px 0 #27ae60, 12px 0 #27ae60, 0 12px #27ae60,
-      -12px -12px #fff, 12px -12px #fff, -12px 12px #fff, 12px 12px #fff; /* Yapraklar açıyor */
-  }
+@keyframes leafSway {
+  0% { transform: rotate(-20deg) scale(0.9); }
+  100% { transform: rotate(20deg) scale(1.1); }
 }
 
-/* 🧪 BİLİM TEMASI: Reaksiyona Giren Piksel Atom / Deney Kabarcığı */
+/* 🧪 BİLİM TEMASI: Reaksiyona Giren Deney Tüpü */
 .pixel-face.talking.theme-bilim { background: #9b59b6 !important; }
-.pixel-face.talking.theme-bilim .theme-canvas {
-  width: 10px;
-  height: 10px;
-  background: transparent;
-  animation: scienceAnim 0.3s infinite steps(1) alternate;
+.pixel-face.talking.theme-bilim .theme-canvas::before {
+  content: '🧪';
+  display: inline-block;
+  animation: scienceBubbles 0.3s infinite linear alternate;
 }
-@keyframes scienceAnim {
-  0% {
-    box-shadow: 
-      0 -20px #2ecc71, -15px -10px #fff, 15px -10px #fff,
-      -20px 10px #fff, 20px 10px #fff, 0 20px #2ecc71;
-  }
-  100% {
-    box-shadow: 
-      0 -10px #fff, -10px 0 #2ecc71, 10px 0 #2ecc71, 0 10px #fff,
-      -25px -25px #2ecc71, 25px -25px #2ecc71, -25px 25px #fff, 25px 25px #fff;
-  }
+@keyframes scienceBubbles {
+  0% { transform: translate(-2px, 3px) rotate(-10deg); }
+  100% { transform: translate(2px, -3px) rotate(10deg); }
 }
 
-/* 🎮 OYUN TEMASI: Atan Retro Piksel Atari Kalbi */
+/* 🎮 OYUN TEMASI: Parlayan Atari Kumandası */
 .pixel-face.talking.theme-oyun { background: #e74c3c !important; }
-.pixel-face.talking.theme-oyun .theme-canvas {
-  width: 10px;
-  height: 10px;
-  background: transparent;
-  animation: gameAnim 0.35s infinite steps(1) alternate;
+.pixel-face.talking.theme-oyun .theme-canvas::before {
+  content: '🎮';
+  display: inline-block;
+  animation: gamePulse 0.4s infinite ease-in-out alternate;
 }
-@keyframes gameAnim {
-  0% {
-    box-shadow: 
-      -10px -10px #fff, 10px -10px #fff,
-      -20px 0 #fff, 0 0 #fff, 20px 0 #fff,
-      -20px 10px #fff, 20px 10px #fff,
-      -10px 20px #fff, 10px 20px #fff,
-      0 30px #fff;
-  }
-  100% {
-    /* Kalp atarak biraz daha genişliyor ve renk değiştiriyor */
-    box-shadow: 
-      -10px -10px #ffd93d, 10px -10px #ffd93d,
-      -20px 0 #ffd93d, 0 0 #ffd93d, 20px 0 #ffd93d,
-      -30px 10px #ffd93d, 30px 10px #ffd93d,
-      -20px 20px #ffd93d, 20px 20px #ffd93d,
-      -10px 30px #ffd93d, 10px 30px #ffd93d,
-      0 40px #ffd93d;
-  }
+@keyframes gamePulse {
+  0% { transform: scale(0.85); filter: drop-shadow(0 0 2px #fff); }
+  100% { transform: scale(1.15); filter: drop-shadow(0 0 15px #ffd93d); }
 }
 
 /* ======================
@@ -369,15 +285,8 @@ body {
   line-height: 1.4;
 }
 
-.child {
-  color: #4f6cff;
-  font-weight: bold;
-}
-
-.bot {
-  color: #27ae60;
-  font-weight: bold;
-}
+.child { color: #4f6cff; font-weight: bold; }
+.bot { color: #27ae60; font-weight: bold; }
 
 /* ======================
     YAZILI GİRİŞ ALANI (TEXT INPUT)
@@ -419,11 +328,5 @@ body {
   transition: all 0.1s ease;
 }
 
-#sendBtn:hover {
-  background-color: #2ecc71;
-}
-
-#sendBtn:active {
-  transform: translateY(4px);
-  box-shadow: none;
-}
+#sendBtn:hover { background-color: #2ecc71; }
+#sendBtn:active { transform: translateY(4px); box-shadow: none; }
