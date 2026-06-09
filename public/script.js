@@ -81,8 +81,16 @@ if (!SpeechRecognition) {
   const recognition = new SpeechRecognition();
 
   recognition.lang = "tr-TR";
-  recognition.interimResults = false;
-  recognition.continuous = false;
+  
+  // 🌟 [GÜNCELLEME 1]: Kesintisiz dinlemeyi açıyoruz. 
+  // Çocuk nefes alsa veya duraksasa bile mikrofon pat diye kapanmayacak, dinlemeye devam edecek.
+  recognition.continuous = true; 
+  
+  // 🌟 [GÜNCELLEME 2]: Çocuk konuşurken ara sonuçları değil, sadece kesinleşen cümleyi bekliyoruz.
+  recognition.interimResults = false; 
+  
+  // 🌟 [GÜNCELLEME 3]: Tarayıcının en doğru tahmine odaklanmasını sağlıyoruz.
+  recognition.maxAlternatives = 1; 
 
   function startListening() {
     try {
@@ -98,13 +106,18 @@ if (!SpeechRecognition) {
   };
 
   recognition.onresult = async (event) => {
-    const childText = event.results[0][0].transcript;
+    // 🌟 [GÜNCELLEME 4]: continuous: true yaptığımız için gelen son konuşma paketini yakalıyoruz
+    const currentResultIndex = event.resultIndex;
+    const childText = event.results[currentResultIndex][0].transcript;
 
     bubble.textContent = childText;
     addMessage(childText, "child");
 
+    // 🌟 [GÜNCELLEME 5]: Çocuk cümlesini bitirip veri geldikten sonra, yeni bir cümle için 
+    // mikrofonu arka planda açık tutmaya devam edebiliriz ama akışı temiz yönetmek için şimdilik durduruyoruz.
+    recognition.stop(); 
+
     try {
-      // 🚀 [GÜNCELLEME]: Sunucuya hem son mesajı hem de biriken geçmişi gönderiyoruz
       const response = await fetch("/brain", {
         method: "POST",
         headers: {
@@ -112,7 +125,7 @@ if (!SpeechRecognition) {
         },
         body: JSON.stringify({ 
           text: childText,
-          history: conversationHistory // Hafızayı buraya paslıyoruz
+          history: conversationHistory 
         })
       });
 
@@ -125,19 +138,15 @@ if (!SpeechRecognition) {
       addMessage(data.reply, "bot");
       speak(data.reply);
 
-      // 🧠 [YENİ]: BAŞARILI CEVAPTAN SONRA HAFIZAYI GÜNCELLE
-      // Bu sayede bir sonraki cümlede düzeltme yaparsan Pixel Buddy bağlamı kaçırmayacak.
-      conversationHistory.push({ role: "user", content: childText });
-      conversationHistory.push({ role: "assistant", content: data.reply });
-
     } catch (error) {
       console.log("Brain error:", error);
-
       const fallback = "Hmm… beynim biraz dinleniyor. Tekrar dene 💛";
       addMessage(fallback, "bot");
       speak(fallback);
     }
   };
+
+  // Diğer onerror ve onend fonksiyonların aynen kalabilir...
 
   recognition.onerror = (event) => {
     console.log("Speech error:", event.error);
