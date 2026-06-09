@@ -260,22 +260,72 @@ body {
   transform: translateY(4px);
   box-shadow: none; /* Basıldığında tam oturma efekti */
 }
-/* 🚀 Tema Aktif Olduğunda Gözleri ve Ağzı Gizle */
+/* ======================
+   🎨 TEMA AKTİFKEN GÖZLERİ, AĞZI VE YANAKLARI GİZLE
+====================== */
 .pixel-face.theme-uzay .eye, .pixel-face.theme-uzay .mouth, .pixel-face.theme-uzay::before, .pixel-face.theme-uzay::after,
-.pixel-face.theme-hayvan .eye, .pixel-face.theme-hayvan .mouth, .pixel-face.theme-hayvan::before, .pixel-face.theme-hayvan::after {
+.pixel-face.theme-hayvan .eye, .pixel-face.theme-hayvan .mouth, .pixel-face.theme-hayvan::before, .pixel-face.theme-hayvan::after,
+.pixel-face.theme-dinozor .eye, .pixel-face.theme-dinozor .mouth, .pixel-face.theme-dinozor::before, .pixel-face.theme-dinozor::after,
+.pixel-face.theme-doga .eye, .pixel-face.theme-doga .mouth, .pixel-face.theme-doga::before, .pixel-face.theme-doga::after,
+.pixel-face.theme-bilim .eye, .pixel-face.theme-bilim .mouth, .pixel-face.theme-bilim::before, .pixel-face.theme-bilim::after,
+.pixel-face.theme-oyun .eye, .pixel-face.theme-oyun .mouth, .pixel-face.theme-oyun::before, .pixel-face.theme-oyun::after {
   display: none !important;
 }
 
-/* 🪐 UZAY TEMASI: Konuşurken dönen bir gezegen/roket efekti */
+/* ======================
+   🚀 HAREKETLİ PİKSEL SEMBOLLER (GIF'LER)
+====================== */
+
+/* 🪐 UZAY TEMASI: Dönen Şirin Piksel Dünya */
 .pixel-face.talking.theme-uzay {
-  background-image: url('https://media.giphy.com/media/XXXXXX/giphy.gif'); /* Buraya hareketli bir piksel uzay GIF'i gelecek */
-  background-size: cover;
-  background-color: #2c3e50;
+  background-image: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3ZhcTJ3NDNnaDZsZnJ2dDRoZXF2dmwzY3pyZzRocjU0cXRmdWFxeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/X8badiODC9vJ5vF6Ch/giphy.gif');
+  background-size: 70%; /* Karakterin içine tam oturması için */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #2c3e50; /* Uzay koyuluğu background */
 }
 
-/* 🦁 HAYVAN TEMASI: Konuşurken hareket eden bir pati veya kedi efekti */
+/* 🦁 HAYVAN TEMASI: Sallanan Piksel Kedi Patisi veya Şirin Piksel Kurbağa */
 .pixel-face.talking.theme-hayvan {
-  background-image: url('https://media.giphy.com/media/YYYYYY/giphy.gif'); /* Hareketli piksel hayvan/pati GIF'i */
-  background-size: cover;
-  background-color: #27ae60;
+  background-image: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Jldmt3ZXg5MmRwOW1sdzdrOXozd2FvMGFwY3IycDcwamJpZmh6ZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/jSVmUuIDePPwIId84e/giphy.gif');
+  background-size: 65%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #27ae60; /* Doğa yeşili */
+}
+
+/* 🦖 DİNOZOR TEMASI: Koşan Sevecen Piksel Dinozor */
+.pixel-face.talking.theme-dinozor {
+  background-image: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDVtcWY4dmNpNHRtMWo1N3p5azUwN3p0djZobzU2ZnVyNXpxejVzNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/WpD0vO6SIsm80qQv30/giphy.gif');
+  background-size: 65%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f39c12; /* Tatlı bir turuncu */
+}
+
+/* 🌳 DOĞA TEMASI: Parlayan Sevimli Piksel Güneş / Çiçek */
+.pixel-face.talking.theme-doga {
+  background-image: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3ZleHhxMGM2ZzVmdjlyOTlndmswazI5OHlnaW5paThlbzZmaWFvMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/VfDkvR7bZ90OSt36O3/giphy.gif');
+  background-size: 60%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1abc9c;
+}
+
+/* 🧪 BİLİM TEMASI: Kaynayan Piksel Deney Tüpü */
+.pixel-face.talking.theme-bilim {
+  background-image: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWpnbG9idHF5MGs1eDRoYmIwdGF0cGNuM2U0am10cnpvaHgycmhwayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/l4HnVy7Uv9XitOQ92/giphy.gif');
+  background-size: 60%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #9b59b6; /* Bilimsel mor */
+}
+
+/* 🎮 OYUN TEMASI: Zıplayan Piksel Atari Kalbi */
+.pixel-face.talking.theme-oyun {
+  background-image: url('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTNoNWkyOXl2ejU2Y3d5bTByZDRhbjdrcndrdWp4NXlxeGlnMms0eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/HDoL0CIhb1uoM/giphy.gif');
+  background-size: 60%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #e74c3c; /* Canlı kırmızı */
 }
