@@ -1,9 +1,11 @@
 const bubble = document.getElementById("bubble");
 const messages = document.getElementById("messages");
 
-// 🧠 [YENİ]: SOHBET GEÇMİŞİ HAFIZASI
-// Sayfa açık kaldığı sürece çocuğun tarayıcısında konuşmaları biriktirir
+// 🧠 SOHBET GEÇMİŞİ HAFIZASI
 let conversationHistory = [];
+
+// 🎨 [YENİ]: O ANKİ AKTİF TEMAYI TUTAN DEĞİŞKEN
+let currentTheme = "genel";
 
 /* ======================
    SPEECH SETUP
@@ -21,8 +23,6 @@ synth.onvoiceschanged = () => {
 
 function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
-  
-  // HTML'deki piksel yüz elementini yakalıyoruz
   const pixelFace = document.querySelector(".pixel-face");
   
   const allVoices = synth.getVoices();
@@ -39,14 +39,23 @@ function speak(text) {
   utter.rate = 0.85; 
   utter.pitch = 1.15; 
 
-  // 🗣️ KONUŞMA BAŞLADIĞINDA: .talking sınıfını ekle (Animasyon başlar)
+  // 🗣️ KONUŞMA BAŞLADIĞINDA: .talking sınıfını ve gelen temayı ekle
   utter.onstart = () => {
-    if (pixelFace) pixelFace.classList.add("talking");
+    if (pixelFace) {
+      pixelFace.classList.add("talking");
+      
+      // Eğer gelen tema "genel" değilse, temaya özel CSS sınıfını giydir (Örn: theme-uzay)
+      if (currentTheme !== "genel") {
+        pixelFace.classList.add(`theme-${currentTheme}`);
+      }
+    }
   };
 
-  // 🤫 KONUŞMA BİTTİĞİNDE: .talking sınıfını kaldır (Animasyon durur)
+  // 🤫 KONUŞMA BİTTİĞİNDE: Tüm tema sınıflarını temizle ve eski mutlu sarı yüzüne dön
   utter.onend = () => {
-    if (pixelFace) pixelFace.classList.remove("talking");
+    if (pixelFace) {
+      pixelFace.className = "pixel-face"; // Tüm ek sınıfları sıfırlar, sadece ana sınıf kalır
+    }
   };
 
   synth.cancel(); 
@@ -72,7 +81,7 @@ function addMessage(text, type) {
 }
 
 /* ======================
-   LISTENING
+   LISTENING (SESLİ GİRİŞ)
 ====================== */
 
 if (!SpeechRecognition) {
@@ -81,15 +90,8 @@ if (!SpeechRecognition) {
   const recognition = new SpeechRecognition();
 
   recognition.lang = "tr-TR";
-  
-  // 🌟 [GÜNCELLEME 1]: Kesintisiz dinlemeyi açıyoruz. 
-  // Çocuk nefes alsa veya duraksasa bile mikrofon pat diye kapanmayacak, dinlemeye devam edecek.
   recognition.continuous = true; 
-  
-  // 🌟 [GÜNCELLEME 2]: Çocuk konuşurken ara sonuçları değil, sadece kesinleşen cümleyi bekliyoruz.
   recognition.interimResults = false; 
-  
-  // 🌟 [GÜNCELLEME 3]: Tarayıcının en doğru tahmine odaklanmasını sağlıyoruz.
   recognition.maxAlternatives = 1; 
 
   function startListening() {
@@ -106,15 +108,12 @@ if (!SpeechRecognition) {
   };
 
   recognition.onresult = async (event) => {
-    // 🌟 [GÜNCELLEME 4]: continuous: true yaptığımız için gelen son konuşma paketini yakalıyoruz
     const currentResultIndex = event.resultIndex;
     const childText = event.results[currentResultIndex][0].transcript;
 
     bubble.textContent = childText;
     addMessage(childText, "child");
 
-    // 🌟 [GÜNCELLEME 5]: Çocuk cümlesini bitirip veri geldikten sonra, yeni bir cümle için 
-    // mikrofonu arka planda açık tutmaya devam edebiliriz ama akışı temiz yönetmek için şimdilik durduruyoruz.
     recognition.stop(); 
 
     try {
@@ -133,20 +132,26 @@ if (!SpeechRecognition) {
         throw new Error("Brain offline");
       }
 
+      // [GÜNCELLEME]: Sunucudan gelen JSON paketini { reply, theme } olarak alıyoruz
       const data = await response.json();
+      
+      currentTheme = data.theme || "genel"; // Temayı hafızaya alıyoruz
 
       addMessage(data.reply, "bot");
-      speak(data.reply);
+      speak(data.reply); // Konuşmayı başlat (Tema sınıfları burada tetiklenecek)
+
+      // 🧠 Sesli sohbet hafıza kaydı buraya da eklendi:
+      conversationHistory.push({ role: "user", content: childText });
+      conversationHistory.push({ role: "assistant", content: data.reply });
 
     } catch (error) {
       console.log("Brain error:", error);
+      currentTheme = "genel";
       const fallback = "Hmm… beynim biraz dinleniyor. Tekrar dene 💛";
       addMessage(fallback, "bot");
       speak(fallback);
     }
   };
-
-  // Diğer onerror ve onend fonksiyonların aynen kalabilir...
 
   recognition.onerror = (event) => {
     console.log("Speech error:", event.error);
@@ -159,6 +164,7 @@ if (!SpeechRecognition) {
 
   window.startListening = startListening;
 }
+
 /* ======================
    YAZILI MESAJ GÖNDERME MANTIĞI
 ====================== */
@@ -168,15 +174,9 @@ const sendBtn = document.getElementById("sendBtn");
 async function handleTextMessage() {
   const childText = textInput.value.trim();
   
-  if (!childText) return; // Boş mesajsa hiçbir şey yapma
+  if (!childText) return; 
 
-  // Giriş kutusunu temizle
   textInput.value = "";
-
-  // ❌ BURADAKİ bubble.textContent = childText; SATIRINI SİLDİK!
-  // Böylece mikrofonun üstündeki balonun yönlendirmesi asla bozulmayacak.
-
-  // Ekranda mesajı sadece sağdaki sohbet geçmişine ekliyoruz
   addMessage(childText, "child");
 
   try {
@@ -195,7 +195,10 @@ async function handleTextMessage() {
       throw new Error("Brain offline");
     }
 
+    // [GÜNCELLEME]: Yazılı kısımda da gelen JSON paketini çözümlüyoruz
     const data = await response.json();
+    
+    currentTheme = data.theme || "genel"; // Temayı hafızaya alıyoruz
 
     addMessage(data.reply, "bot");
     speak(data.reply);
@@ -205,16 +208,15 @@ async function handleTextMessage() {
 
   } catch (error) {
     console.log("Brain error:", error);
+    currentTheme = "genel";
     const fallback = "Hmm… beynim biraz dinleniyor. Tekrar dene 💛";
     addMessage(fallback, "bot");
     speak(fallback);
   }
 }
 
-// Butona tıklandığında gönder
 sendBtn.addEventListener("click", handleTextMessage);
 
-// Kutunun içindeyken Enter tuşuna basıldığında gönder
 textInput.addEventListener("keypress", (event) => {
   if (event.key === "Enter") {
     handleTextMessage();
